@@ -1,7 +1,9 @@
 # SiteMinder to JWT Authentication Bridge
 A fancy title, simply service.  
 
-This microservice basics converts a SiteMinder SSO session to a [JWT](https://jwt.io).
+This microservice basics converts a SiteMinder SSO session to a [JWT](https://jwt.io) so you can secure your UI app and 
+APIs. As you may know because your here, single page applications (Angular, React) or mobile app either cannot or with great difficult use proxy based 
+authentication service like SiteMinder.
 
 This is intended as a stop-gap measure until an OpenID Connect service is offered. 
 
@@ -23,6 +25,9 @@ You'll need the following, recommended order to get started but they can be para
 
 ## Installing on OpenShift
 
+OpenShift is not required and you can deploy this to any host that supports NodeJS v4+.  If you happen to use OpenShift 
+we've given you some templates to get started quickly!
+
 TODO: provide templates
 
 ## Integrate your UI app
@@ -35,7 +40,7 @@ TODO: describe integration
 
 # Developers
 
-Most will just use this service out-of-the-box but if you wanted to contribute or tweak for your needs, continue reading.
+Most will just use this service out-of-the-box but if you wanted to contribute a feature, fix a bug or tweak for your needs, continue reading.
 
 ## Development Environment
 
