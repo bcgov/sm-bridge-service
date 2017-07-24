@@ -1,0 +1,28 @@
+{
+  "name": "sm-bridge-service",
+  "version": "0.0.1",
+  "description": "SiteMinder to JWT Authentication Bridge",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcgov/sm-bridge-service.git"
+  },
+  "keywords": [
+    "SiteMinder",
+    "JWT",
+    "API"
+  ],
+  "author": "Greg Turner",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/bcgov/sm-bridge-service/issues"
+  },
+  "homepage": "https://github.com/bcgov/sm-bridge-service#readme"
+}
