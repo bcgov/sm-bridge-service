@@ -1,5 +1,8 @@
+# ON HOLD
+This is a work-in-progress (mostly design), but it's been put on hold.  
+
 # SiteMinder to JWT Authentication Bridge
-A fancy title, simply service.  
+A fancy title, simple service.  
 
 This microservice basics converts a SiteMinder SSO session to a [JWT](https://jwt.io) so you can secure your UI app and 
 APIs. As you may know (because you're here), single page applications (Angular, React) or mobile app either cannot or 
