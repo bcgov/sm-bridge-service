@@ -1,6 +1,3 @@
-# ON HOLD
-This is a work-in-progress (mostly design), but it's been put on hold.  
-
 # SiteMinder to JWT Authentication Bridge
 A fancy title, simple service.  
 
