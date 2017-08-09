@@ -9,7 +9,7 @@ var ISSUER = process.env.ISSUER || "http://localhost:8080";
 var REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
 var TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 0;
 var SECRET = process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n";
-var SERVICE_IP = process.env.LISTEN_IP || '0.0.0.0';
+var SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
 var SERVICE_PORT = process.env.SERVICE_PORT || 8080;
 var HOSTNAME = require('os').hostname();
 var LOG_LEVEL = process.env.LOG_LEVEL || "debug";
@@ -65,6 +65,17 @@ var server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
 
 ////////////////////////////////////////////////////////
 /*
+ * App Shutdown
+ */
+////////////////////////////////////////////////////////
+var shutDown = function () {
+  winston.info('Shutting down...');
+  server.close();
+}
+exports.shutDown = shutDown;
+
+////////////////////////////////////////////////////////
+/*
  * Creates a JWT based on SiteMinder HTTP Headers
  */
 ////////////////////////////////////////////////////////
@@ -110,5 +121,5 @@ app.get('/authorize', function (req, res) {
  */
 ////////////////////////////////////////////////////////
 app.get('/status', function (req, res) {
-  res.send(200);
+  res.sendStatus(200);
 });
