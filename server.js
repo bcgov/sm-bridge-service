@@ -1,46 +1,47 @@
 /*jshint node:true, esversion: 6 */
 'use strict';
 
-var app = require('express')();
-var jwt = require('jsonwebtoken');
-var encodeUrl = require('encodeurl');
-var winston = require('winston');
-var helmet = require('helmet');
+const app = require('express')();
+const jwt = require('jsonwebtoken');
+const winston = require('winston');
+const helmet = require('helmet');
 
-var ISSUER = process.env.ISSUER || "http://localhost:8080";
-var REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
-var TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 60;
-var SECRET = process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n";
-var HEADER_MAPPER = process.env.HEADER_MAPPER ||  [
+const ISSUER = process.env.ISSUER || "http://localhost:8080";
+const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
+const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 60;
+const SECRET = process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n";
+const HEADER_MAPPER = process.env.HEADER_MAPPER ||  [
   {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
   {"incoming": "SMGOV_USERTYPE", "outgoing": "userType", "required": true},
-  {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true}
+  {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
+  {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}
 ];
-var SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
-var SERVICE_PORT = process.env.SERVICE_PORT || 8080;
-var HOSTNAME = require('os').hostname();
-var LOG_LEVEL = process.env.LOG_LEVEL || "debug";
+const SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
+const SERVICE_PORT = process.env.SERVICE_PORT || 8080;
+const HOSTNAME = require('os').hostname();
+const LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 
-var WINSTON_HOST = process.env.WINSTON_HOST;
-var WINSTON_PORT = process.env.WINSTON_PORT;
+const WINSTON_HOST = process.env.WINSTON_HOST;
+const WINSTON_PORT = process.env.WINSTON_PORT;
 
 // Export consts for unit tests
 exports.ISSUER = ISSUER;
 exports.REDIRECT_URI = REDIRECT_URI;
+exports.TOKEN_EXPIRY = TOKEN_EXPIRY;
 exports.SECRET = SECRET;
 exports.HEADER_MAPPER = HEADER_MAPPER;
 
 // Prevent default keys and other settings from going into production
-if (process.env.NODE_ENV == 'production') {
-  if (SECRET == '4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n') {
+if (process.env.NODE_ENV === 'production') {
+  if (SECRET === '4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n') {
     winston.error("You MUST change SECRET before running in a production environment.");
     process.exit(1);
   }
-  if (ISSUER == 'http://localhost:8080') {
+  if (ISSUER === 'http://localhost:8080') {
     winston.error("You MUST change ISSUER before running in a production environment.");
     process.exit(1);
   }
-  if (REDIRECT_URI == 'http://localhost:9090') {
+  if (REDIRECT_URI === 'http://localhost:9090') {
     winston.error("You MUST change REDIRECT_URI before running in a production environment.");
     process.exit(1);
   }
@@ -69,9 +70,9 @@ if (process.env.WINSTON_PORT) {
  */
 ////////////////////////////////////////////////////////
 
-var server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
-  var host = server.address().address;
-  var port = server.address().port;
+let server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
+  let host = server.address().address;
+  let port = server.address().port;
   winston.info(`SM Bridge Service listening at http://${host}:${port}`);
   winston.info(`Log level is at: ${LOG_LEVEL}`);
 });
@@ -84,10 +85,10 @@ app.use(helmet());
  * App Shutdown
  */
 ////////////////////////////////////////////////////////
-var shutDown = function () {
+let shutDown = function () {
   winston.info('Shutting down...');
   server.close();
-}
+};
 exports.shutDown = shutDown;
 
 ////////////////////////////////////////////////////////
@@ -95,23 +96,28 @@ exports.shutDown = shutDown;
  * Creates a JWT based on SiteMinder HTTP Headers
  */
 ////////////////////////////////////////////////////////
-var createJWT = function (headers, nonce) {
+let createJWT = function (headers, nonce) {
   return new Promise(function (resolve, reject) {
     try {
       winston.debug(`Creating JWT for headers: ` + JSON.stringify(headers));
 
       // Setup basic ID Token
-      var data = {
+      let data = {
         "iss": ISSUER,
         "aud": REDIRECT_URI,
         "nonce": nonce,
-
         "iat": Math.floor((new Date).getTime()/1000)
       };
 
-      // Sign our token
-      var idTokenSigned = jwt.sign(data, SECRET, { expiresIn: TOKEN_EXPIRY + 'm' });
+      // Use HTTP Header mapper
+      for (let i = 0; i < HEADER_MAPPER.length; i++) {
+        data[HEADER_MAPPER[i].outgoing] = headers[HEADER_MAPPER[i].incoming.toLowerCase()];
+      }
 
+      // Sign our token
+      let idTokenSigned = jwt.sign(data, SECRET, { expiresIn: TOKEN_EXPIRY + 'm' });
+
+      // All done, return JWT
       resolve(idTokenSigned);
 
     } catch (e) {
@@ -136,8 +142,10 @@ app.get('/authorize', function (req, res) {
   }
 
   // ensure require headers are provided by SiteMinder
-  for (var i = 0; i < HEADER_MAPPER.length; i++) {
-    if (!req.header(HEADER_MAPPER[i].incoming)) {
+  for (let i = 0; i < HEADER_MAPPER.length; i++) {
+    if (!req.header(HEADER_MAPPER[i].incoming) &&
+      HEADER_MAPPER[i].required === true) {
+
       res.status(400).send(makeOAuth2ErrorResponse("authentication_failure","missing required HTTP header: " + HEADER_MAPPER[i].incoming));
       return;
     }

@@ -66,11 +66,12 @@ If NodeJS detects it's running in production and missing required configuration,
 By default this service will map these properties, but you can change them via environment variable called `HEADER_MAPPER` so long as you follow the object structure.  
 
 ```json
-    [
-    {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
-    {"incoming": "SMGOV_USERTYPE", "outgoing": "userType", "required": true},
-    {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true}
-    ]
+[
+  {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
+  {"incoming": "SMGOV_USERTYPE", "outgoing": "userType", "required": true},
+  {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
+  {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}
+]
 ```
 
 
@@ -90,7 +91,7 @@ Example [Required ID Token claims](http://openid.net/specs/openid-connect-core-1
 {
    "iss": "http://localhost:8080",
    "sub": "987987SKJSDKLJSKLDJKLM8907087987",
-   "aud": "0",
+   "aud": "http://localhost:9090",
    "nonce": "654a654s8d7987320z",
    "exp": 1311281970,
    "iat": 1311280970,
@@ -117,18 +118,19 @@ ID Token specification allows for extensions, here's an example of the extention
     ... required claims ...
     ... standard claims ...
     "user_type": "BUSINESS"
+    "email": "bob@example.com"
 }
 ```
 
 ### Token Mapping from SiteMinder HTTP Headers
 
-SiteMinder HTTP Header | Description | Mapped to ID Token Claim (JSON) | Always Provider
+SiteMinder HTTP Header | Description | Mapped to ID Token Claim (JSON) | Always Provided
 ------------ | ------------- | ------------- | -------------
 `SM_TIMETOEXPIRE` | The amount of time remaining in the session | `exp` | yes
-`SMGOV_USERIDENTIFIER` | A character string that uniquely identifies the user.   This is typically a 32 character string consisting of hexadecimal characters but may be tailored to the requirements of the relying party. | sub | yes
-`SMGOV_USERTYPE` | The type of user that was authenticated.  Will have one of the following values | TBD | yes
+`SMGOV_USERIDENTIFIER` | A character string that uniquely identifies the user.   This is typically a 32 character string consisting of hexadecimal characters but may be tailored to the requirements of the relying party. | `sub` | yes
+`SMGOV_USERTYPE` | The type of user that was authenticated.  Will have one of the following values: `BUSINESS`, `INDIVIDUAL`, `INTERNAL` | `user_type` | yes
 `SMGOV_USERDISPLAYNAME` | The display name of the user that can be displayed on web pages | `name` | yes
- 
+`SMGOV_EMAIL` | The display email address of the user  | `email` | if available
 
 # Developers
 

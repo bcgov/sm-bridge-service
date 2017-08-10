@@ -2,6 +2,7 @@ const request = require("request");
 const url = require('url');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const async = require('async');
 
 describe("API Server", function() {
 
@@ -61,16 +62,19 @@ describe("API Server", function() {
       });
     });
     it("should succeed with nonce reflected", function (done) {
-      let nonce = crypto.randomBytes(32).toString('Base64');
+      let nonce = encodeURIComponent(crypto.randomBytes(32).toString('Base64'));
+      let requestHeaders = {
+        "SMGOV_USERIDENTIFIER": "89123hj1kj2389asjkdhajksd",
+        "SMGOV_USERTYPE": "BUSINESS",
+        "SMGOV_USERDISPLAYNAME": "Greg\\ Turner'",
+        "SMGOV_EMAIL": ""
+
+      };
+
       request.get({
         url: base_url + "/authorize?nonce=" + nonce,
         followRedirect: false,
-        headers: {
-          "SMGOV_USERIDENTIFIER": "89123hj1kj2389asjkdhajksd",
-          "SMGOV_USERTYPE": "BUSINESS",
-          "SMGOV_USERDISPLAYNAME": "Greg"
-
-        }
+        headers: requestHeaders
       }, function (error, response, body) {
         expect(error).toBeNull();
         expect(response).toBeTruthy();
@@ -97,8 +101,17 @@ describe("API Server", function() {
         // Confirm token attributes
         expect(accessTokenDecoded.iss).toBe(service.ISSUER);
         expect(accessTokenDecoded.aud).toBe(service.REDIRECT_URI);
-        expect(accessTokenDecoded.nonce).toBe(nonce);
+        expect(accessTokenDecoded.nonce).toBe(decodeURIComponent(nonce));
+        expect(accessTokenDecoded.exp).toBe(accessTokenDecoded.iat + service.TOKEN_EXPIRY * 60);
 
+        // Look for correct mapping
+        Object.keys(requestHeaders).forEach(function(key) {
+          for (let i = 0; i < service.HEADER_MAPPER.length; i++) {
+            if (service.HEADER_MAPPER[i].incoming === key) {
+              expect(accessTokenDecoded[service.HEADER_MAPPER[i].outgoing]).toBe(requestHeaders[key]);
+            }
+          }
+        });
 
         console.log(JSON.stringify(accessTokenDecoded));
 
