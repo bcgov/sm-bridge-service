@@ -9,6 +9,11 @@ var ISSUER = process.env.ISSUER || "http://localhost:8080";
 var REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
 var TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 0;
 var SECRET = process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n";
+var HEADER_MAPPER = process.env.HEADER_MAPPER ||  [
+  {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
+  {"incoming": "SMGOV_USERTYPE", "outgoing": "userType", "required": true},
+  {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true}
+];
 var SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
 var SERVICE_PORT = process.env.SERVICE_PORT || 8080;
 var HOSTNAME = require('os').hostname();
@@ -79,24 +84,18 @@ exports.shutDown = shutDown;
  * Creates a JWT based on SiteMinder HTTP Headers
  */
 ////////////////////////////////////////////////////////
-var createJWT = function (token, nonce) {
-  winston.debug(`verifying: ${token} against ${nonce}`);
+var createJWT = function (headers, nonce) {
   return new Promise(function (resolve, reject) {
     try {
+      winston.debug(`Creating JWT for headers: ` + JSON.stringify(headers));
 
-      var decoded = jwt.verify(token, SECRET);
-      winston.debug(`decoded: ` + JSON.stringify(decoded));
 
-      if (decoded.nonce === nonce) {
-        winston.debug(`Captcha Valid`);
-        resolve({valid: true});
-      } else {
-        winston.debug(`Captcha Invalid!`);
-        resolve({valid: false});
-      }
+
+      resolve("random token");
+
     } catch (e) {
-      winston.error(`Token/ResourceID Verification Failed: ` + JSON.stringify(e));
-      resolve({valid: false});
+      winston.error(`Unexpected error in creating HWT: ` + JSON.stringify(e));
+      reject();
     }
   });
 };
@@ -108,9 +107,22 @@ exports.createJWT = createJWT;
  */
 ////////////////////////////////////////////////////////
 app.get('/authorize', function (req, res) {
-  createJWT(req.body.token, req.body.nonce)
-    .then(function (ret) {
-      res.send(ret);
+
+  // ensure required parameters are provided
+  if (!req.query["nonce"]) {
+    res.status(400).send(makeOAuth2ErrorResponse("invalid_request","missing nonce in query string, e.g., nonce=<randomvalue>"));
+    return;
+  }
+  for (var i = 0; i < HEADER_MAPPER.length; i++) {
+    if (!req.header(HEADER_MAPPER[i].incoming)) {
+      res.status(400).send(makeOAuth2ErrorResponse("authentication_failure","missing required HTTP header: " + HEADER_MAPPER[i].incoming));
+      return;
+    }
+  }
+
+  createJWT(req.headers, req.query["nonce"])
+    .then(function (token) {
+      res.status(302).send(token);
     });
 });
 
@@ -123,3 +135,8 @@ app.get('/authorize', function (req, res) {
 app.get('/status', function (req, res) {
   res.sendStatus(200);
 });
+
+function makeOAuth2ErrorResponse(errorCode, error) {
+  return {"error" : errorCode, "error_description" :error}
+}
+exports.makeOAuth2ErrorResponse = makeOAuth2ErrorResponse;

@@ -24,4 +24,28 @@ describe("API Server", function() {
       });
     });
   });
+
+  describe("GET /authorize", function() {
+    it("should fail with a nonce", function (done) {
+      request.get({url: base_url + "/authorize", followRedirect: false}, function (error, response, body) {
+        expect(error).toBeNull();
+        expect(response).toBeDefined();
+        expect(response.statusCode).toBe(400);
+        expect(body).toBe(JSON.stringify(server.makeOAuth2ErrorResponse("invalid_request", "missing nonce in query string, e.g., nonce=<randomvalue>")));
+        done();
+
+      });
+    });
+    it("should fail without SM headers", function (done) {
+      request.get({url: base_url + "/authorize?nonce=1231jkajhxuyqkjwe", followRedirect: false}, function (error, response, body) {
+        expect(error).toBeNull();
+        expect(response).toBeDefined();
+        expect(response.statusCode).toBe(400);
+        expect(body).toBe(JSON.stringify(server.makeOAuth2ErrorResponse("authentication_failure", "missing required HTTP header: SMGOV_USERIDENTIFIER")));
+        done();
+
+      });
+    });
+  });
+
 });

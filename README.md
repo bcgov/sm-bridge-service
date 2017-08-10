@@ -62,6 +62,18 @@ LOG_LEVEL | How chatty do you want to logging to be. Values can be (in order by 
 
 If NodeJS detects it's running in production and missing required configuration, NodeJS will terminate the process, `exit 1`.
 
+#### Header Mapping 
+By default this service will map these properties, but you can change them via environment variable called `HEADER_MAPPER` so long as you follow the object structure.  
+
+```json
+    [
+    {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
+    {"incoming": "SMGOV_USERTYPE", "outgoing": "userType", "required": true},
+    {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true}
+    ]
+```
+
+
 ## Integrate your UI app
 
 TODO: describe integration
