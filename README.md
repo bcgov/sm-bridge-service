@@ -54,7 +54,7 @@ Environment Variable Name | Description | Default Value
 ------------ | ------------- | -------------
 ISSUER | The name of the issuer of the token | `http://localhost:8080`, value must be provided for production e.g., `https://login.mydomain.com`
 REDIRECT_URI | Normally provided by the client in OAuth2 implicit grant flow, however since we're single tenant you just configure the endpoint where you want this service to return to the browser to, e.g., `https://mydomain.com` | `http://localhost:9090`, value must be provided for production e.g., `https://mydomain.com` 
-TOKEN_EXPIRY | How long is the token considered valid in minutes | 0 to use`SM_TIMETOEXPIRE`, e.g., 2-4 hours.  If no `SM_TIMETOEXPIRE` is not available defaults to 1 hour
+TOKEN_EXPIRY | How long is the token considered valid in minutes | `60` (minutes) 
 SECRET | The secret key for signing and validating the token, must be base64 encoded, use `node gensecret.js > secret.txt` to securely generate a new key, use a different one per environment | Defaults to a "hard-coded" key, value must be provided in production 
 SERVICE_IP | Which IP address for this service to listen on the host | `0.0.0.0` (all adaptors)
 SERVICE_PORT | Which port to listen on | `8080` for running NodeJS as non-root
@@ -94,7 +94,6 @@ Example [Required ID Token claims](http://openid.net/specs/openid-connect-core-1
    "nonce": "654a654s8d7987320z",
    "exp": 1311281970,
    "iat": 1311280970,
-   "auth_time": 1311280969,
    ... standard claims ...
    ... extension claims ... 
   }

@@ -3,11 +3,13 @@
 
 var app = require('express')();
 var jwt = require('jsonwebtoken');
+var encodeUrl = require('encodeurl');
 var winston = require('winston');
+var helmet = require('helmet');
 
 var ISSUER = process.env.ISSUER || "http://localhost:8080";
 var REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
-var TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 0;
+var TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 60;
 var SECRET = process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n";
 var HEADER_MAPPER = process.env.HEADER_MAPPER ||  [
   {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
@@ -21,6 +23,12 @@ var LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 
 var WINSTON_HOST = process.env.WINSTON_HOST;
 var WINSTON_PORT = process.env.WINSTON_PORT;
+
+// Export consts for unit tests
+exports.ISSUER = ISSUER;
+exports.REDIRECT_URI = REDIRECT_URI;
+exports.SECRET = SECRET;
+exports.HEADER_MAPPER = HEADER_MAPPER;
 
 // Prevent default keys and other settings from going into production
 if (process.env.NODE_ENV == 'production') {
@@ -68,6 +76,9 @@ var server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
   winston.info(`Log level is at: ${LOG_LEVEL}`);
 });
 
+// Enable security package
+app.use(helmet());
+
 ////////////////////////////////////////////////////////
 /*
  * App Shutdown
@@ -89,12 +100,22 @@ var createJWT = function (headers, nonce) {
     try {
       winston.debug(`Creating JWT for headers: ` + JSON.stringify(headers));
 
+      // Setup basic ID Token
+      var data = {
+        "iss": ISSUER,
+        "aud": REDIRECT_URI,
+        "nonce": nonce,
 
+        "iat": Math.floor((new Date).getTime()/1000)
+      };
 
-      resolve("random token");
+      // Sign our token
+      var idTokenSigned = jwt.sign(data, SECRET, { expiresIn: TOKEN_EXPIRY + 'm' });
+
+      resolve(idTokenSigned);
 
     } catch (e) {
-      winston.error(`Unexpected error in creating HWT: ` + JSON.stringify(e));
+      winston.error(`Unexpected error in creating JWT: ` + JSON.stringify(e));
       reject();
     }
   });
@@ -108,11 +129,13 @@ exports.createJWT = createJWT;
 ////////////////////////////////////////////////////////
 app.get('/authorize', function (req, res) {
 
-  // ensure required parameters are provided
+  // ensure required nonce parameter is provided
   if (!req.query["nonce"]) {
     res.status(400).send(makeOAuth2ErrorResponse("invalid_request","missing nonce in query string, e.g., nonce=<randomvalue>"));
     return;
   }
+
+  // ensure require headers are provided by SiteMinder
   for (var i = 0; i < HEADER_MAPPER.length; i++) {
     if (!req.header(HEADER_MAPPER[i].incoming)) {
       res.status(400).send(makeOAuth2ErrorResponse("authentication_failure","missing required HTTP header: " + HEADER_MAPPER[i].incoming));
@@ -122,7 +145,9 @@ app.get('/authorize', function (req, res) {
 
   createJWT(req.headers, req.query["nonce"])
     .then(function (token) {
-      res.status(302).send(token);
+      res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(JSON.stringify(token)))
+    }).catch(function (error) {
+      res.status(500).send(makeOAuth2ErrorResponse("unknown_error", "unknown error occurred, review logs on the service for more details."));
     });
 });
 
