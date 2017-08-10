@@ -63,7 +63,7 @@ LOG_LEVEL | How chatty do you want to logging to be. Values can be (in order by 
 If NodeJS detects it's running in production and missing required configuration, NodeJS will terminate the process, `exit 1`.
 
 #### Header Mapping 
-By default this service will map these properties, but you can change them via environment variable called `HEADER_MAPPER` so long as you follow the object structure.  
+By default this service will map these properties, but you can change them via a **Base64 Encoded string** environment variable called `HEADER_MAPPER` so long as you follow the JSON syntax.  
 
 ```json
 [
@@ -83,7 +83,7 @@ TODO: describe integration
 
 TODO: describe integration
 
-## ID Token 
+## Access Token
 
 Example [Required ID Token claims](http://openid.net/specs/openid-connect-core-1_0.html#IDToken) use for this bridge:
 
@@ -122,11 +122,42 @@ ID Token specification allows for extensions, here's an example of the extention
 }
 ```
 
-### Token Mapping from SiteMinder HTTP Headers
+### Full Example
+
+Raw Encoded Token:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjkwOTAiLCJub25jZSI6Ii9xanhYS0FyV2I0ZDRJNXhYalRqdHdodzZBUFk2T3VTVHk3VjFNZjRwYUE9IiwiaWF0IjoxNTAyMzk4NzE2LCJzdWIiOiI4OTEyM2hqMWtqMjM4OWFzamtkaGFqa3NkIiwidXNlcl90eXBlIjoiQlVTSU5FU1MiLCJuYW1lIjoiR3JlZ1xcIFR1cm5lciciLCJlbWFpbCI6IiIsImV4cCI6MTUwMjQwMjMxNn0.oUJ9QOYo4gWn0T9jARAzy0Jk-huG70xoFqUj7zuD_yA
+```
+
+Decoded Header
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+Decode Payload
+```json
+{
+  "iss":"http://localhost:8080",
+  "aud":"http://localhost:9090",
+  "nonce":"XhUE/AgOG5hrNnO0JpYI1lvDtonKvflnOwH1YLUukpw=",
+  "iat":1502398546,
+  "sub":"89123hj1kj2389asjkdhajksd",
+  "user_type":"BUSINESS",
+  "name":"Greg\\ Turner'",
+  "email":"example@example.com",
+  "exp":1502402146
+}
+```
+
+
+
+### Default Mapping from SiteMinder HTTP Headers
 
 SiteMinder HTTP Header | Description | Mapped to ID Token Claim (JSON) | Always Provided
 ------------ | ------------- | ------------- | -------------
-`SM_TIMETOEXPIRE` | The amount of time remaining in the session | `exp` | yes
 `SMGOV_USERIDENTIFIER` | A character string that uniquely identifies the user.   This is typically a 32 character string consisting of hexadecimal characters but may be tailored to the requirements of the relying party. | `sub` | yes
 `SMGOV_USERTYPE` | The type of user that was authenticated.  Will have one of the following values: `BUSINESS`, `INDIVIDUAL`, `INTERNAL` | `user_type` | yes
 `SMGOV_USERDISPLAYNAME` | The display name of the user that can be displayed on web pages | `name` | yes

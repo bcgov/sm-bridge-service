@@ -9,13 +9,19 @@ const helmet = require('helmet');
 const ISSUER = process.env.ISSUER || "http://localhost:8080";
 const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
 const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || 60;
-const SECRET = process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n";
-const HEADER_MAPPER = process.env.HEADER_MAPPER ||  [
-  {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
-  {"incoming": "SMGOV_USERTYPE", "outgoing": "userType", "required": true},
-  {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
-  {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}
-];
+const SECRET = Buffer.from(process.env.SECRET || "4mq9aab5Ut5uGxvnFJyhTMa6ACaOWbfhC9V0PC3zjPquz5bzwtVb8BZKivZHSG+uDoUoo2W4GN8nBiyLqU3JGhuao18hficOokxEGlMHHQBz4GnUfLeMO+Z84iIpgddDJDGe+O2TlkUU3fNd1ua5BGNN8cVI4CVZlQnzgwEgePhhn6VsRyjaJu41/JJYrjtkr9LxPGBuhfpuBbMAv16LgC6RPtwQ1fWowPgPykUaK3O2CVgUpTMCldLi/N4snmme8c2K40WF7Q5I+QJUKu5QbEbOOexFF/8bK+V6fFI1tXLCoTfgw2/s1iUdWGgUllTIjyySG8Oeb+g1tfHmtlrYnw==\n", 'base64');
+let HEADER_MAPPER;
+if (process.env.HEADER_MAPPER) {
+  HEADER_MAPPER = JSON.parse(Buffer.from(process.env.HEADER_MAPPER, 'base64'))
+}
+else {
+  HEADER_MAPPER = [
+    {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
+    {"incoming": "SMGOV_USERTYPE", "outgoing": "user_type", "required": true},
+    {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
+    {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}
+  ];
+}
 const SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
 const SERVICE_PORT = process.env.SERVICE_PORT || 8080;
 const HOSTNAME = require('os').hostname();

@@ -90,6 +90,8 @@ describe("API Server", function() {
         let accessTokenString = decodeURIComponent(redirectUrl.query["access_token"]);
         expect(accessTokenString).toBeTruthy();
 
+        console.log(accessTokenString);
+
         // Parse string
         let accessToken = JSON.parse(accessTokenString);
         expect(accessToken).toBeTruthy();
