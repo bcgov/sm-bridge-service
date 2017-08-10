@@ -79,6 +79,9 @@ By default this service will map these properties, but you can change them via a
 
 TODO: describe integration
 
+URI encode your `nonce`
+
+
 ## Integrate your API app
 
 TODO: describe integration

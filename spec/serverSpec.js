@@ -66,7 +66,7 @@ describe("API Server", function() {
       let requestHeaders = {
         "SMGOV_USERIDENTIFIER": "89123hj1kj2389asjkdhajksd",
         "SMGOV_USERTYPE": "BUSINESS",
-        "SMGOV_USERDISPLAYNAME": "Greg\\ Turner'",
+        "SMGOV_USERDISPLAYNAME": "Greg\\ \"Turner'",
         "SMGOV_EMAIL": ""
 
       };
@@ -107,7 +107,7 @@ describe("API Server", function() {
         expect(accessTokenDecoded.exp).toBe(accessTokenDecoded.iat + service.TOKEN_EXPIRY * 60);
 
         // Look for correct mapping
-        Object.keys(requestHeaders).forEach(function(key) {
+        Object.keys(requestHeaders).forEach(function (key) {
           for (let i = 0; i < service.HEADER_MAPPER.length; i++) {
             if (service.HEADER_MAPPER[i].incoming === key) {
               expect(accessTokenDecoded[service.HEADER_MAPPER[i].outgoing]).toBe(requestHeaders[key]);
@@ -115,10 +115,72 @@ describe("API Server", function() {
           }
         });
 
-        console.log(JSON.stringify(accessTokenDecoded));
-
         done();
 
+      });
+    });
+
+    it("should handle multiple callers (async tests)", function (done) {
+
+      async.times(100, function(n, next) {
+
+        let nonce = encodeURIComponent(crypto.randomBytes(32).toString('Base64'));
+        let requestHeaders = {
+          "SMGOV_USERIDENTIFIER": crypto.randomBytes(32).toString('Base64'),
+          "SMGOV_USERTYPE": crypto.randomBytes(32).toString('Base64'),
+          "SMGOV_USERDISPLAYNAME": crypto.randomBytes(32).toString('Base64'),
+          "SMGOV_EMAIL": crypto.randomBytes(32).toString('Base64')
+
+        };
+
+        request.get({
+          url: base_url + "/authorize?nonce=" + nonce,
+          followRedirect: false,
+          headers: requestHeaders
+        }, function (error, response, body) {
+          expect(error).toBeNull();
+          expect(response).toBeTruthy();
+          expect(response.statusCode).toBe(302);
+          expect(response.headers["location"]).toBeTruthy();
+
+          // Parse location response header
+          let redirectUrl = url.parse(response.headers["location"], true);
+          expect(redirectUrl).toBeDefined();
+          expect(redirectUrl.query["access_token"]).toBeTruthy();
+
+          // decode access token
+          let accessTokenString = decodeURIComponent(redirectUrl.query["access_token"]);
+          expect(accessTokenString).toBeTruthy();
+
+          console.log(accessTokenString);
+
+          // Parse string
+          let accessToken = JSON.parse(accessTokenString);
+          expect(accessToken).toBeTruthy();
+
+          // Verify token and decode token
+          let accessTokenDecoded = jwt.verify(accessToken, service.SECRET);
+          expect(accessTokenDecoded).toBeTruthy();
+
+          // Confirm token attributes
+          expect(accessTokenDecoded.iss).toBe(service.ISSUER);
+          expect(accessTokenDecoded.aud).toBe(service.REDIRECT_URI);
+          expect(accessTokenDecoded.nonce).toBe(decodeURIComponent(nonce));
+          expect(accessTokenDecoded.exp).toBe(accessTokenDecoded.iat + service.TOKEN_EXPIRY * 60);
+
+          // Look for correct mapping
+          Object.keys(requestHeaders).forEach(function (key) {
+            for (let i = 0; i < service.HEADER_MAPPER.length; i++) {
+              if (service.HEADER_MAPPER[i].incoming === key) {
+                expect(accessTokenDecoded[service.HEADER_MAPPER[i].outgoing]).toBe(requestHeaders[key]);
+              }
+            }
+          });
+
+          next();
+        });
+      }, function(err, users) {
+        done();
       });
     });
   });

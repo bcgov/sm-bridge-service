@@ -157,7 +157,8 @@ app.get('/authorize', function (req, res) {
     }
   }
 
-  createJWT(req.headers, req.query["nonce"])
+  // Call out function to get the JWT
+  createJWT(req.headers, decodeURIComponent(req.query["nonce"]))
     .then(function (token) {
       res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(JSON.stringify(token)))
     }).catch(function (error) {
