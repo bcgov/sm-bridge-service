@@ -10,11 +10,6 @@ def IMAGESTREAM_NAME = APP_NAME
 
 node {
 
-  stage('build sm-bridge-service') {
-    echo "Building: " + NGINX_BUILD_CONFIG
-    openshiftBuild bldCfg: NGINX_BUILD_CONFIG, showBuildLogs: 'true'
-  }
-
   stage('build ' + BUILD_CONFIG) {
     echo "Building: " + BUILD_CONFIG
     openshiftBuild bldCfg: BUILD_CONFIG, showBuildLogs: 'true'
