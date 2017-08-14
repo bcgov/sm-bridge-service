@@ -7,13 +7,6 @@
   "objects": [
     {
       "apiVersion": "v1",
-      "kind": "ImageStream",
-      "metadata": {
-        "name": "${NAME}"
-      }
-    },
-    {
-      "apiVersion": "v1",
       "kind": "DeploymentConfig",
       "metadata": {
         "creationTimestamp": null,
@@ -54,34 +47,50 @@
                 "name": "${NAME}",
                 "ports": [
                   {
-                    "containerPort": "${SERVICE_PORT}",
+                    "containerPort": 8080,
                     "protocol": "TCP"
                   }
                 ],
                 "env": [
                   {
-                    "name": "RealIpFrom",
-                    "value": "${REAL_IP_FROM}"
+                    "name": "ISSUER",
+                    "value": "${ISSUER}"
                   },
                   {
-                    "name": "AdditionalRealIpFromRules",
-                    "value": "${AdditionalRealIpFromRules}"
+                    "name": "REDIRECT_URI",
+                    "value": "${REDIRECT_URI}"
                   },
                   {
-                    "name": "IpFilterRules",
-                    "value": "${IpFilterRules}"
+                    "name": "TOKEN_EXPIRY",
+                    "value": "${TOKEN_EXPIRY}"
                   },
                   {
-                    "name": "HTTP_BASIC",
-                    "value": "${HTTP_BASIC}"
+                    "name": "SECRET",
+                    "value": "${SECRET}"
                   },
                   {
-                    "name": "HTTP_BASIC_USERNAME",
-                    "value": "${HTTP_BASIC_USERNAME}"
+                    "name": "HEADER_MAPPER",
+                    "value": "${HEADER_MAPPER}"
                   },
                   {
-                    "name": "HTTP_BASIC_PASSWORD",
-                    "value": "${HTTP_BASIC_PASSWORD}"
+                    "name": "SERVICE_IP",
+                    "value": "${SERVICE_IP}"
+                  },
+                  {
+                    "name": "SERVICE_PORT",
+                    "value": "${SERVICE_PORT}"
+                  },
+                  {
+                    "name": "USE_TRUST_PROXY",
+                    "value": "${USE_TRUST_PROXY}"
+                  },
+                  {
+                    "name": "TRUST_PROXY",
+                    "value": "${TRUST_PROXY}"
+                  },
+                  {
+                    "name": "LOG_LEVEL",
+                    "value": "${LOG_LEVEL}"
                   }
                 ],
                 "resources": {
@@ -97,7 +106,7 @@
                 "livenessProbe": {
                   "httpGet": {
                     "path": "/status",
-                    "port": "${SERVICE_PORT}",
+                    "port": 8080,
                     "scheme": "HTTP"
                   },
                   "initialDelaySeconds": 30,
@@ -109,7 +118,7 @@
                 "readinessProbe": {
                   "httpGet": {
                     "path": "/status",
-                    "port": "${SERVICE_PORT}",
+                    "port": 8080,
                     "scheme": "HTTP"
                   },
                   "initialDelaySeconds": 10,
@@ -162,10 +171,10 @@
       "spec": {
         "ports": [
           {
-            "name": "${SERVICE_PORT}-tcp",
-            "port": "${SERVICE_PORT}",
+            "name": "8080-tcp",
+            "port": 8080,
             "protocol": "TCP",
-            "targetPort": "${SERVICE_PORT}"
+            "targetPort": 8080
           }
         ],
         "selector": {
@@ -188,7 +197,7 @@
       "spec": {
         "host": "${APPLICATION_DOMAIN}",
         "port": {
-          "targetPort": "${SERVICE_PORT}-tcp"
+          "targetPort": "8080-tcp"
         },
         "tls": {
           "insecureEdgeTerminationPolicy": "Redirect",
@@ -238,18 +247,31 @@
       "value": "gcpe-mygovbc-demo"
     },
     {
+      "description": "The TAG name for this environment, e.g., dev, test, prod",
+      "displayName": "Env TAG name",
+      "name": "TAG_NAME",
+      "value": "dev"
+    },
+    {
+      "description": "The domain name for the internet to reach this service, e.g., login.mygovbc-demo.pathfinder.gov.bc.ca",
+      "displayName": "Application Domain Name",
+      "name": "APPLICATION_DOMAIN",
+      "required": true,
+      "value": "login.mygovbc-demo.pathfinder.gov.bc.ca"
+    },
+    {
       "description": "The URI of the issuer of the token, e.g., https://myroutename.pathfinder.gov.bc.ca",
       "displayName": "Issuer",
       "name": "ISSUER",
       "required": true,
-      "value": ""
+      "value": "https://login.mygovbc-demo.pathfinder.gov.bc.ca"
     },
     {
       "description": "Normally provided by the client in OAuth2 implicit grant flow, however since we're single tenant you just configure the endpoint where you want this service to return to the browser to after authentication, e.g., https://mydomain.com",
       "displayName": "Redirect URI",
       "name": "REDIRECT_URI",
       "required": true,
-      "value": ""
+      "value": "https://mygovbc-demo.pathfinder.gov.bc.ca"
     },
     {
       "description": "How long is the token considered valid in minutes, defaults to 60 minutes.",
@@ -280,11 +302,12 @@
       "value": "0.0.0.0"
     },
     {
-      "description": "Which port for NodeJS to listen on, defaults to 8080 (non-root port)",
+      "description": "Which port for NodeJS to listen on, defaults to 8080 (non-root port), if you change this you'll need to edit the template.",
       "displayName": "Service Port",
       "name": "SERVICE_PORT",
       "required": true,
-      "value": "8080"
+      "value": "8080",
+      "readonly": true
     },
     {
       "description": "Enables security controls to determine which proxy can be trusted.  For example, OpenShift's HA Proxy and WAM's Reverse Proxy.  Defaults to true, you may disable ONLY IF you can ensure no traffic can hit this service without going thru the reverse proxy which is not the case in BC Governments deployment of OpenShift.",
