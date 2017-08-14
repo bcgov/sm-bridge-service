@@ -5,7 +5,7 @@ def APP_NAME = 'sm-bridge-service'
 def TAG_NAMES = ['dev', 'test', 'prod']
 
 // You shouldn't have to edit these if you're following the conventions
-def BUILD_CONFIG = APP_NAME;
+def BUILD_CONFIG = APP_NAME + "-build";
 def IMAGESTREAM_NAME = APP_NAME
 
 node {
