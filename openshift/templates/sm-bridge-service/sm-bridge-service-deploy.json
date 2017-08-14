@@ -301,7 +301,7 @@
       "value": "172.16.0.0/12"
     },
     {
-      "description": "How chatty do you want to logging to be. Values can be (in order by chattyness) `debug` `info` `error`.",
+      "description": "How chatty do you want to logging to be. Values can be (in order of chattyness) `debug` `info` `error`.",
       "displayName": "Log Level",
       "name": "LOG_LEVEL",
       "required": true,

@@ -61,7 +61,7 @@ SERVICE_PORT | Which port to listen on | `8080` for running NodeJS as non-root
 USE_TRUST_PROXY | Enables security controls to determine which proxy can be trusted.  For example, OpenShift's HA Proxy and WAM's Reverse Proxy.  Defaults to true, you may disable ONLY IF you can ensure no traffic can hit this service without going thru the reverse proxy which is not the case in BC Governments deployment of OpenShift. | `true`
 TRUST_PROXY | Which IP addresses or CIDR can be trusted. For multiple addresses, separate with a comma.  [More info](https://expressjs.com/en/guide/behind-proxies.html) | `172.16.0.0/12`
 SERVICE_PORT | Which port to listen on | `8080` for running NodeJS as non-root
-LOG_LEVEL | How chatty do you want to logging to be. Values can be (in order by chattyness) `debug` `info` `error`. | `debug`   
+LOG_LEVEL | How chatty do you want to logging to be. Values can be (in order of chattyness) `debug` `info` `error`. | `debug`   
 
 If NodeJS detects it's running in production and missing required configuration, NodeJS will terminate the process, `exit 1`.
 
