@@ -321,7 +321,7 @@
       "displayName": "Troxy Proxy IPs",
       "name": "TRUST_PROXY",
       "required": true,
-      "value": "172.16.0.0/12"
+      "value": "172.51.0.0/22, 172.51.4.0/22"
     },
     {
       "description": "How chatty do you want to logging to be. Values can be (in order of chattyness) `debug` `info` `error`.",
