@@ -45,7 +45,7 @@ You'll need the following, recommended order to get started but they can be para
 OpenShift is not required and you can deploy this to any host that supports NodeJS v4+.  If you happen to use OpenShift 
 we've given you some templates to get started quickly!
 
-TODO: provide templates
+Browse to `openshift` directory for details on setup and deployments.  
 
 ### Configuration
 The application does not have a configuration file, rather you provide configuration via the operating systems environments variables.  This allows for easy configuration management in a container environment.
