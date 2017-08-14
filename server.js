@@ -4,6 +4,7 @@
 const app = require('express')();
 const jwt = require('jsonwebtoken');
 const winston = require('winston');
+const expressWinston = require('express-winston');
 const helmet = require('helmet');
 
 const ISSUER = process.env.ISSUER || "http://localhost:8080";
@@ -25,12 +26,15 @@ else {
 const SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
 const SERVICE_PORT = process.env.SERVICE_PORT || 8080;
 const HOSTNAME = require('os').hostname();
-const LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 
+const USE_TRUST_PROXY = process.env.USE_TRUST_PROXY || "true";
+const TRUST_PROXY = process.env.TRUST_PROXY || "127.0.0.1";
+
+const LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 const WINSTON_HOST = process.env.WINSTON_HOST;
 const WINSTON_PORT = process.env.WINSTON_PORT;
 
-// Export consts for unit tests
+// Export constants for unit tests
 exports.ISSUER = ISSUER;
 exports.REDIRECT_URI = REDIRECT_URI;
 exports.TOKEN_EXPIRY = TOKEN_EXPIRY;
@@ -70,12 +74,12 @@ if (process.env.WINSTON_PORT) {
   });
 }
 
+
 ////////////////////////////////////////////////////////
 /*
  * App Startup
  */
 ////////////////////////////////////////////////////////
-
 let server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
   let host = server.address().address;
   let port = server.address().port;
@@ -85,6 +89,12 @@ let server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
 
 // Enable security package
 app.use(helmet());
+
+// Enable trust proxy if configured
+if (USE_TRUST_PROXY === "true") {
+  winston.info("Trust proxy enabled for: ", TRUST_PROXY);
+  app.set('trust proxy', TRUST_PROXY);
+}
 
 ////////////////////////////////////////////////////////
 /*
@@ -96,6 +106,18 @@ let shutDown = function () {
   server.close();
 };
 exports.shutDown = shutDown;
+
+////////////////////////////////////////////////////////
+/*
+ * Request logging
+ */
+////////////////////////////////////////////////////////
+
+app.use('/', function (req, res, next) {
+  // Log it
+  winston.info("request: ", req.ip, req.method, req.url, res.statusCode);
+  next();
+});
 
 ////////////////////////////////////////////////////////
 /*
@@ -119,6 +141,9 @@ let createJWT = function (headers, nonce) {
       for (let i = 0; i < HEADER_MAPPER.length; i++) {
         data[HEADER_MAPPER[i].outgoing] = headers[HEADER_MAPPER[i].incoming.toLowerCase()];
       }
+
+      // Log it
+      winston.info("Issuing token for subject: ", data.sub);
 
       // Sign our token
       let idTokenSigned = jwt.sign(data, SECRET, { expiresIn: TOKEN_EXPIRY + 'm' });

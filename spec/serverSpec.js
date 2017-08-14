@@ -68,7 +68,6 @@ describe("API Server", function() {
         "SMGOV_USERTYPE": "BUSINESS",
         "SMGOV_USERDISPLAYNAME": "Greg\\ \"Turner'",
         "SMGOV_EMAIL": ""
-
       };
 
       request.get({
@@ -119,7 +118,38 @@ describe("API Server", function() {
 
       });
     });
+    it("should succeed with X-Forward-For", function (done) {
+      let nonce = encodeURIComponent(crypto.randomBytes(32).toString('Base64'));
+      let requestHeaders = {
+        "SMGOV_USERIDENTIFIER": "89123hj1kj2389asjkdhajksd",
+        "SMGOV_USERTYPE": "BUSINESS",
+        "SMGOV_USERDISPLAYNAME": "Greg\\ \"Turner'",
+        "X-Forwarded-For": "155.555.555.555"
+      };
 
+      request.get({
+        url: base_url + "/authorize?nonce=" + nonce,
+        followRedirect: false,
+        headers: requestHeaders
+      }, function (error, response, body) {
+        expect(error).toBeNull();
+        expect(response).toBeTruthy();
+        expect(response.statusCode).toBe(302);
+        expect(response.headers["location"]).toBeTruthy();
+
+        // Parse location response header
+        let redirectUrl = url.parse(response.headers["location"], true);
+        expect(redirectUrl).toBeDefined();
+        expect(redirectUrl.query["access_token"]).toBeTruthy();
+
+
+
+        done();
+
+      });
+    });
+
+    /*
     it("should handle multiple callers (async tests)", function (done) {
 
       async.times(100, function(n, next) {
@@ -183,6 +213,7 @@ describe("API Server", function() {
         done();
       });
     });
+    */
   });
 
 });

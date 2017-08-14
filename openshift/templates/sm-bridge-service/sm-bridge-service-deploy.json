@@ -1,0 +1,313 @@
+{
+  "apiVersion": "v1",
+  "kind": "Template",
+  "metadata": {
+    "name": "sm-bridge-service-deploy"
+  },
+  "objects": [
+    {
+      "apiVersion": "v1",
+      "kind": "ImageStream",
+      "metadata": {
+        "name": "${NAME}"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "DeploymentConfig",
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "${NAME}"
+        },
+        "name": "${NAME}"
+      },
+      "spec": {
+        "replicas": 2,
+        "selector": {
+          "app": "${NAME}",
+          "deploymentconfig": "${NAME}"
+        },
+        "strategy": {
+          "rollingParams": {
+            "intervalSeconds": 1,
+            "maxSurge": "25%",
+            "maxUnavailable": "25%",
+            "timeoutSeconds": 600,
+            "updatePeriodSeconds": 1
+          },
+          "type": "Rolling"
+        },
+        "template": {
+          "metadata": {
+            "creationTimestamp": null,
+            "labels": {
+              "app": "${NAME}",
+              "deploymentconfig": "${NAME}"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "image": "${NAME}",
+                "imagePullPolicy": "Always",
+                "name": "${NAME}",
+                "ports": [
+                  {
+                    "containerPort": "${SERVICE_PORT}",
+                    "protocol": "TCP"
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "RealIpFrom",
+                    "value": "${REAL_IP_FROM}"
+                  },
+                  {
+                    "name": "AdditionalRealIpFromRules",
+                    "value": "${AdditionalRealIpFromRules}"
+                  },
+                  {
+                    "name": "IpFilterRules",
+                    "value": "${IpFilterRules}"
+                  },
+                  {
+                    "name": "HTTP_BASIC",
+                    "value": "${HTTP_BASIC}"
+                  },
+                  {
+                    "name": "HTTP_BASIC_USERNAME",
+                    "value": "${HTTP_BASIC_USERNAME}"
+                  },
+                  {
+                    "name": "HTTP_BASIC_PASSWORD",
+                    "value": "${HTTP_BASIC_PASSWORD}"
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "10m",
+                    "memory": "100Mi"
+                  },
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "1Gi"
+                  }
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/status",
+                    "port": "${SERVICE_PORT}",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 30,
+                  "timeoutSeconds": 60,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/status",
+                    "port": "${SERVICE_PORT}",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 10,
+                  "timeoutSeconds": 60,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                }
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "securityContext": {
+            },
+            "terminationGracePeriodSeconds": 30
+          }
+        },
+        "test": false,
+        "triggers": [
+          {
+            "type": "ConfigChange"
+          },
+          {
+            "type": "ImageChange",
+            "imageChangeParams": {
+              "automatic": true,
+              "containerNames": [
+                "${NAME}"
+              ],
+              "from": {
+                "kind": "ImageStreamTag",
+                "namespace": "${IMAGE_NAMESPACE}",
+                "name": "${NAME}:${TAG_NAME}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "${NAME}"
+        },
+        "name": "${NAME}"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "${SERVICE_PORT}-tcp",
+            "port": "${SERVICE_PORT}",
+            "protocol": "TCP",
+            "targetPort": "${SERVICE_PORT}"
+          }
+        ],
+        "selector": {
+          "app": "${NAME}",
+          "deploymentconfig": "${NAME}"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Route",
+      "metadata": {
+        "labels": {
+          "app": "${NAME}"
+        },
+        "name": "${NAME}"
+      },
+      "spec": {
+        "host": "${APPLICATION_DOMAIN}",
+        "port": {
+          "targetPort": "${SERVICE_PORT}-tcp"
+        },
+        "tls": {
+          "insecureEdgeTerminationPolicy": "Redirect",
+          "termination": "edge"
+        },
+        "to": {
+          "kind": "Service",
+          "name": "${NAME}",
+          "weight": 100
+        }
+      }
+    },
+    {
+      "apiVersion": "extensions/v1beta1",
+      "kind": "HorizontalPodAutoscaler",
+      "metadata": {
+        "name": "${NAME}",
+        "labels": {
+          "app": "${NAME}"
+        }
+      },
+      "spec": {
+        "scaleRef": {
+          "kind": "DeploymentConfig",
+          "name": "${NAME}",
+          "apiVersion": "extensions/v1beta1",
+          "subresource": "scale"
+        },
+        "minReplicas": 2,
+        "maxReplicas": 6
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "description": "The name assigned to all of the openshift objects defined in this template. It is also the name of runtime image you want.",
+      "displayName": "Name",
+      "name": "NAME",
+      "required": true,
+      "value": "sm-bridge-service"
+    },
+    {
+      "description": "The namespace where to get the above image name, change this to your projects name.",
+      "displayName": "Image Namespace",
+      "name": "IMAGE_NAMESPACE",
+      "required": true,
+      "value": "gcpe-mygovbc-demo"
+    },
+    {
+      "description": "The URI of the issuer of the token, e.g., https://myroutename.pathfinder.gov.bc.ca",
+      "displayName": "Issuer",
+      "name": "ISSUER",
+      "required": true,
+      "value": ""
+    },
+    {
+      "description": "Normally provided by the client in OAuth2 implicit grant flow, however since we're single tenant you just configure the endpoint where you want this service to return to the browser to after authentication, e.g., https://mydomain.com",
+      "displayName": "Redirect URI",
+      "name": "REDIRECT_URI",
+      "required": true,
+      "value": ""
+    },
+    {
+      "description": "How long is the token considered valid in minutes, defaults to 60 minutes.",
+      "displayName": "Token Expiry",
+      "name": "TOKEN_EXPIRY",
+      "required": false,
+      "value": ""
+    },
+    {
+      "description": "The secret key for signing and validating the token, must be base64 encoded, use `node gensecret.js > secret.txt` to securely generate a new key, use a different one per environment",
+      "displayName": "Secret",
+      "name": "SECRET",
+      "required": true,
+      "value": ""
+    },
+    {
+      "description": "By default this service will map these properties, but you can change them via a **Base64 Encoded string** environment variable called `HEADER_MAPPER` so long as you follow the JSON syntax.",
+      "displayName": "Header Mapper",
+      "name": "HEADER_MAPPER",
+      "required": false,
+      "value": ""
+    },
+    {
+      "description": "Which IP address for NodeJS to listen on the host, defaults to all adaptors.",
+      "displayName": "Service IP",
+      "name": "SERVICE_IP",
+      "required": true,
+      "value": "0.0.0.0"
+    },
+    {
+      "description": "Which port for NodeJS to listen on, defaults to 8080 (non-root port)",
+      "displayName": "Service Port",
+      "name": "SERVICE_PORT",
+      "required": true,
+      "value": "8080"
+    },
+    {
+      "description": "Enables security controls to determine which proxy can be trusted.  For example, OpenShift's HA Proxy and WAM's Reverse Proxy.  Defaults to true, you may disable ONLY IF you can ensure no traffic can hit this service without going thru the reverse proxy which is not the case in BC Governments deployment of OpenShift.",
+      "displayName": "Use Trust Proxy",
+      "name": "USE_TRUST_PROXY",
+      "required": true,
+      "value": "true"
+    },
+    {
+      "description": "Which IP addresses or CIDR can be trusted. For multiple addresses, separate with a comma.  More info: https://expressjs.com/en/guide/behind-proxies.html",
+      "displayName": "Troxy Proxy IPs",
+      "name": "TRUST_PROXY",
+      "required": true,
+      "value": "172.16.0.0/12"
+    },
+    {
+      "description": "How chatty do you want to logging to be. Values can be (in order by chattyness) `debug` `info` `error`.",
+      "displayName": "Log Level",
+      "name": "LOG_LEVEL",
+      "required": true,
+      "value": "debug"
+    }
+
+
+  ]
+}
