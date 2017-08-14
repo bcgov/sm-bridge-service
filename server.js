@@ -23,7 +23,7 @@ else {
     {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}
   ];
 }
-const SERVICE_IP = process.env.LISTEN_IP || '127.0.0.1';
+const SERVICE_IP = process.env.SERVICE_IP || '127.0.0.1';
 const SERVICE_PORT = process.env.SERVICE_PORT || 8080;
 const HOSTNAME = require('os').hostname();
 

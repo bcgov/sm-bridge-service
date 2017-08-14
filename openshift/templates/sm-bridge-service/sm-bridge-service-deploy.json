@@ -253,18 +253,18 @@
       "value": "dev"
     },
     {
-      "description": "The domain name for the internet to reach this service, e.g., login.mygovbc-demo.pathfinder.gov.bc.ca",
+      "description": "The domain name for the internet to reach this service, e.g., login-mygovbc-demo.pathfinder.gov.bc.ca",
       "displayName": "Application Domain Name",
       "name": "APPLICATION_DOMAIN",
       "required": true,
-      "value": "login.mygovbc-demo.pathfinder.gov.bc.ca"
+      "value": "login-mygovbc-demo.pathfinder.gov.bc.ca"
     },
     {
       "description": "The URI of the issuer of the token, e.g., https://myroutename.pathfinder.gov.bc.ca",
       "displayName": "Issuer",
       "name": "ISSUER",
       "required": true,
-      "value": "https://login.mygovbc-demo.pathfinder.gov.bc.ca"
+      "value": "https://login-mygovbc-demo.pathfinder.gov.bc.ca"
     },
     {
       "description": "Normally provided by the client in OAuth2 implicit grant flow, however since we're single tenant you just configure the endpoint where you want this service to return to the browser to after authentication, e.g., https://mydomain.com",
