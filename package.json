@@ -28,6 +28,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "express": "^4.15.3",
+    "express-ip-access-control": "^1.0.5",
     "express-winston": "^2.4.0",
     "helmet": "^3.8.1",
     "jsonwebtoken": "^7.4.1",

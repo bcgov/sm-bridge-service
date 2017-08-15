@@ -124,7 +124,7 @@ describe("API Server", function() {
         "SMGOV_USERIDENTIFIER": "89123hj1kj2389asjkdhajksd",
         "SMGOV_USERTYPE": "BUSINESS",
         "SMGOV_USERDISPLAYNAME": "Greg\\ \"Turner'",
-        "X-Forwarded-For": "155.555.555.555"
+        "X-Forwarded-For": "127.0.0.1"
       };
 
       request.get({
@@ -143,6 +143,29 @@ describe("API Server", function() {
         expect(redirectUrl.query["access_token"]).toBeTruthy();
 
 
+
+        done();
+
+      });
+    });
+
+    it("should be denied with unknown X-Forward-For", function (done) {
+      let nonce = encodeURIComponent(crypto.randomBytes(32).toString('Base64'));
+      let requestHeaders = {
+        "SMGOV_USERIDENTIFIER": "89123hj1kj2389asjkdhajksd",
+        "SMGOV_USERTYPE": "BUSINESS",
+        "SMGOV_USERDISPLAYNAME": "Greg\\ \"Turner'",
+        "X-Forwarded-For": "10.0.0.1, 127.0.0.1"
+      };
+
+      request.get({
+        url: base_url + "/authorize?nonce=" + nonce,
+        followRedirect: false,
+        headers: requestHeaders
+      }, function (error, response, body) {
+        expect(error).toBeNull();
+        expect(response).toBeTruthy();
+        expect(response.statusCode).toBe(401);
 
         done();
 

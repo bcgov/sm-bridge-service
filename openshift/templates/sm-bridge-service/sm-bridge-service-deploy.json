@@ -324,6 +324,13 @@
       "value": "172.51.0.0/22, 172.51.4.0/22"
     },
     {
+      "description": "Which IP addresses or CIDR can be trusted. For multiple addresses, separate with a comma.  More info: https://expressjs.com/en/guide/behind-proxies.html",
+      "displayName": "Troxy Proxy IPs",
+      "name": "TRUST_PROXY",
+      "required": true,
+      "value": "172.51.0.0/22, 172.51.4.0/22"
+    },
+    {
       "description": "How chatty do you want to logging to be. Values can be (in order of chattyness) `debug` `info` `error`.",
       "displayName": "Log Level",
       "name": "LOG_LEVEL",

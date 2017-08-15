@@ -9,6 +9,24 @@ with great difficult use proxy based authentication service like SiteMinder.
 
 ![Image of Sequence Diagram](/docs/sequence_diagram.png)
 
+## How it's secured
+
+If you're running on an environment that can control the traffic, then just firewall this service to only listen to SiteMinder's 
+reverse proxy service.  
+
+If you're running on OpenShift where all internet traffic is allow here's how it's secured:
+
+1. DNS A record resolves to SiteMinder Reverse Proxy
+1. SiteMinder engages and logins in the user etc
+1. HTTP request is forwarded to OpenShift's HA Proxy (technically it goes thru a load balancer buts its transparent for our concerns)
+1. OpenShift's HA Proxy read the HTTP `host` header and matches with our `route`
+1. HA Proxy also appends the IP address of SiteMinder Reverse Proxy to `x-forwarded-for`
+1. SM Bridge Service "trusts" HA Proxy to append `x-forwarded-for` correctly (which it does)
+1. SM Bridge Service will only allow the IP addresses of SiteMinder Reverse Proxy denying all other traffic
+ 
+You must use HTTPS between the browser and SiteMinder Reverse Proxy AND between SiteMinder Reverse Proxy and OpenShift.  
+The `route` in OpenShift can `edge` terminate the TLS. 
+
 ## OAuth2/OIDC Similarities and Differences 
 
 This is intended as a stop-gap measure until an OpenID Connect service is offered.  It's based on OAuth2 Implicit Grant
@@ -60,6 +78,7 @@ SERVICE_IP | Which IP address for this service to listen on the host | `0.0.0.0`
 SERVICE_PORT | Which port to listen on | `8080` for running NodeJS as non-root
 USE_TRUST_PROXY | Enables security controls to determine which proxy can be trusted.  For example, OpenShift's HA Proxy and WAM's Reverse Proxy.  Defaults to true, you may disable ONLY IF you can ensure no traffic can hit this service without going thru the reverse proxy which is not the case in BC Governments deployment of OpenShift. | `true`
 TRUST_PROXY | Which IP addresses or CIDR can be trusted. For multiple addresses, separate with a comma.  [More info](https://expressjs.com/en/guide/behind-proxies.html) | `172.16.0.0/12`
+SITEMINDER_PROXY | Which IP address or CIDR is the SiteMinder Reverse Proxy Servers, all other address will be denied | none
 SERVICE_PORT | Which port to listen on | `8080` for running NodeJS as non-root
 LOG_LEVEL | How chatty do you want to logging to be. Values can be (in order of chattyness) `debug` `info` `error`. | `debug`   
 

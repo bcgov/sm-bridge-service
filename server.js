@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const winston = require('winston');
 const expressWinston = require('express-winston');
 const helmet = require('helmet');
+const AccessControl = require('express-ip-access-control');
 
 const ISSUER = process.env.ISSUER || "http://localhost:8080";
 const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
@@ -29,6 +30,7 @@ const HOSTNAME = require('os').hostname();
 
 const USE_TRUST_PROXY = process.env.USE_TRUST_PROXY || "true";
 const TRUST_PROXY = process.env.TRUST_PROXY || "127.0.0.1";
+const SITEMINDER_PROXY = process.env.SITEMINDER_PROXY || "127.0.0.1";
 
 const LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 const WINSTON_HOST = process.env.WINSTON_HOST;
@@ -75,6 +77,7 @@ if (process.env.WINSTON_PORT) {
 }
 
 
+
 ////////////////////////////////////////////////////////
 /*
  * App Startup
@@ -96,6 +99,26 @@ if (USE_TRUST_PROXY === "true") {
   app.set('trust proxy', TRUST_PROXY);
 }
 
+// IP access control
+if (SITEMINDER_PROXY) {
+  const accessControlOptions = {
+    mode: 'allow',
+    denys: [],
+    allows: [SITEMINDER_PROXY],  //IPv4, IPv6, CIDR format & IPv4 mapped IPv6 addresses
+    forceConnectionAddress: false,
+    log: function (clientIp, access) {
+      if (!access) {
+        winston.error(clientIp + ' access denied, trying to circumvent SM Proxy.');
+      }
+    },
+    statusCode: 401,
+    redirectTo: '',
+    message: 'Unauthorized'
+  };
+// Create middleware
+  app.use(AccessControl(accessControlOptions));
+}
+
 ////////////////////////////////////////////////////////
 /*
  * App Shutdown
@@ -115,7 +138,7 @@ exports.shutDown = shutDown;
 
 app.use('/authorize', function (req, res, next) {
   // Log it
-  winston.info("request: ", req.ip, req.method, req.url, res.statusCode);
+  winston.info("request: ", req.ip, req.headers["x-forwarded-for"], req.method, req.url, res.statusCode);
   next();
 });
 
