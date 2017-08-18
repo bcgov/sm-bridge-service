@@ -99,14 +99,15 @@ By default this service will map these properties, but you can change them via a
 
 ## Integrate your UI app
 
-TODO: describe integration
+1. Redirect to /authorize?nonce=<yourvalue>
+2. Redirect
 
 URI encode your `nonce`
 
 
 ## Integrate your API app
 
-TODO: describe integration
+1. HTTP Header `Authorization` the value `Bearer <token>`
 
 ## Access Token
 

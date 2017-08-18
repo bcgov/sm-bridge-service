@@ -69,6 +69,7 @@ just use the built-in OpenShift triggers.
  1. Paste `sm-bridge-service-deploy` into form -> Create
  1. Setup configuration for the environment following directions for each variable
  1. This should auto trigger a build
+ 1. Grant the `oc policy add-role-to-user system:image-puller system:serviceaccount:<projectname>-dev:default -n <tools projectname>`
  
  Repeat these steps for each environment you have changing the `Env TAG name`.
  

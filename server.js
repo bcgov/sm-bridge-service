@@ -22,7 +22,9 @@ else {
     {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
     {"incoming": "SMGOV_USERTYPE", "outgoing": "user_type", "required": true},
     {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
-    {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}
+    {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false}//,
+    //{"incoming": "OFFICE_CODE"}
+    //{"incoming": "MINISTRY"}
   ];
 }
 const SERVICE_IP = process.env.SERVICE_IP || '127.0.0.1';
@@ -106,7 +108,7 @@ if (USE_TRUST_PROXY === "true") {
 }
 
 // IP access control
-if (SITEMINDER_PROXY) {
+if (SITEMINDER_PROXY && SITEMINDER_PROXY.length > 0) {
   const accessControlOptions = {
     mode: 'allow',
     denys: [],
