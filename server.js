@@ -2,6 +2,7 @@
 'use strict';
 
 const app = require('express')();
+const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const winston = require('winston');
 const expressWinston = require('express-winston');
@@ -35,6 +36,8 @@ const SITEMINDER_PROXY = process.env.SITEMINDER_PROXY || "127.0.0.1";
 const LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 const WINSTON_HOST = process.env.WINSTON_HOST;
 const WINSTON_PORT = process.env.WINSTON_PORT;
+
+const SIMULATOR_MODE = process.env.SIMULATOR_MODE || "false";
 
 // Export constants for unit tests
 exports.ISSUER = ISSUER;
@@ -88,6 +91,9 @@ let server = app.listen(SERVICE_PORT, SERVICE_IP, function () {
   let port = server.address().port;
   winston.info(`SM Bridge Service listening at http://${host}:${port}`);
   winston.info(`Log level is at: ${LOG_LEVEL}`);
+  if (SIMULATOR_MODE === "true") {
+    winston.info("Simulator mode is ENABLED");
+  }
 });
 
 // Enable security package
@@ -166,6 +172,7 @@ let createJWT = function (headers, nonce) {
       }
 
       // Log it
+      winston.debug("Issuing token for payload: ", data);
       winston.info("Issuing token for subject: ", data.sub);
 
       // Sign our token
@@ -187,32 +194,59 @@ exports.createJWT = createJWT;
  * A simple Auth2 endpoint for making JWTs
  */
 ////////////////////////////////////////////////////////
-app.get('/authorize', function (req, res) {
+// If we're in simulator mode we let the user choose some users
+if (SIMULATOR_MODE === "true") {
 
-  // ensure required nonce parameter is provided
-  if (!req.query["nonce"]) {
-    res.status(400).send(makeOAuth2ErrorResponse("invalid_request","missing nonce in query string, e.g., nonce=<randomvalue>"));
-    return;
-  }
+  // create application/x-www-form-urlencoded parser
+  var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-  // ensure require headers are provided by SiteMinder
-  for (let i = 0; i < HEADER_MAPPER.length; i++) {
-    if (!req.header(HEADER_MAPPER[i].incoming) &&
-      HEADER_MAPPER[i].required === true) {
+  app.get('/authorize', function (req, res) {
+    res.sendFile('./simulator/index.html', {root: __dirname});
+  });
 
-      res.status(400).send(makeOAuth2ErrorResponse("authentication_failure","missing required HTTP header: " + HEADER_MAPPER[i].incoming));
-      return;
-    }
-  }
+  app.post('/authorize', urlencodedParser, function (req, res) {
 
-  // Call out function to get the JWT
-  createJWT(req.headers, decodeURIComponent(req.query["nonce"]))
-    .then(function (token) {
-      res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(JSON.stringify(token)))
-    }).catch(function (error) {
+    // Pull out form vars and convert to headers
+    winston.debug("Forms vars: ", req.body);
+
+    // Call out function to get the JWT
+    createJWT(req.body, decodeURIComponent(req.query["nonce"]))
+      .then(function (token) {
+        res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(JSON.stringify(token)))
+      }).catch(function (error) {
       res.status(500).send(makeOAuth2ErrorResponse("unknown_error", "unknown error occurred, review logs on the service for more details."));
     });
-});
+  });
+} else {
+  app.get('/authorize', function (req, res) {
+
+    // ensure required nonce parameter is provided
+    if (!req.query["nonce"]) {
+      res.status(400).send(makeOAuth2ErrorResponse("invalid_request","missing nonce in query string, e.g., nonce=<randomvalue>"));
+      return;
+    }
+
+
+
+    // ensure require headers are provided by SiteMinder
+    for (let i = 0; i < HEADER_MAPPER.length; i++) {
+      if (!req.header(HEADER_MAPPER[i].incoming) &&
+        HEADER_MAPPER[i].required === true) {
+
+        res.status(400).send(makeOAuth2ErrorResponse("authentication_failure","missing required HTTP header: " + HEADER_MAPPER[i].incoming));
+        return;
+      }
+    }
+
+    // Call out function to get the JWT
+    createJWT(req.headers, decodeURIComponent(req.query["nonce"]))
+      .then(function (token) {
+        res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(JSON.stringify(token)))
+      }).catch(function (error) {
+        res.status(500).send(makeOAuth2ErrorResponse("unknown_error", "unknown error occurred, review logs on the service for more details."));
+      });
+  });
+}
 
 ////////////////////////////////////////////////////////
 /*

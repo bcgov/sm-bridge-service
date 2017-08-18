@@ -27,6 +27,7 @@
   "homepage": "https://github.com/bcgov/sm-bridge-service#readme",
   "dependencies": {
     "async": "^2.5.0",
+    "body-parser": "^1.17.2",
     "express": "^4.15.3",
     "express-ip-access-control": "^1.0.5",
     "express-winston": "^2.4.0",
