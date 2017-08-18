@@ -5,8 +5,23 @@
   <title>SiteMinder Bridge Service Simulator</title>
 </head>
 <body>
-  <h1>Enter in values in the fields</h1>
-  <form method="post">
+  <h1>Enter in values in the fields or pick a user</h1>
+  <script>
+    function fillForm(formValues) {
+      document.form1.userIdentifier.value = formValues[0];
+      document.form1.userType.value = formValues[1];
+      document.form1.userDisplayName.value = formValues[2];
+      document.form1.userEmail.value = formValues[3];
+    }
+  </script>
+  <a href="javascript:fillForm(['987123897198273123981723987123', 'BUSINESS', 'Joe Business', 'email@email.com'])">
+    User 1
+  </a>
+  &nbsp;
+  <a href="javascript:fillForm(['12321387jhaskjhdjkhsadads3', 'INTERNAL', 'Sam Internal', 'email@email.com'])">
+    User 2
+  </a>
+  <form name="form1" method="post">
     <div>
       <label for="userIdentifier">User Identifier</label>
       <input id="userIdentifier" name="smgov_useridentifier" type="text">
