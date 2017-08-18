@@ -33,7 +33,7 @@ const HOSTNAME = require('os').hostname();
 
 const USE_TRUST_PROXY = process.env.USE_TRUST_PROXY || "true";
 const TRUST_PROXY = process.env.TRUST_PROXY || "127.0.0.1";
-const SITEMINDER_PROXY = process.env.SITEMINDER_PROXY || "127.0.0.1";
+const SITEMINDER_PROXY = process.env.SITEMINDER_PROXY;
 
 const LOG_LEVEL = process.env.LOG_LEVEL || "debug";
 const WINSTON_HOST = process.env.WINSTON_HOST;
