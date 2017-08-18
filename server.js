@@ -212,7 +212,7 @@ if (SIMULATOR_MODE === "true") {
     // Call out function to get the JWT
     createJWT(req.body, decodeURIComponent(req.query["nonce"]))
       .then(function (token) {
-        res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(JSON.stringify(token)))
+        res.redirect(REDIRECT_URI + "?access_token=" + encodeURIComponent(token));
       }).catch(function (error) {
       res.status(500).send(makeOAuth2ErrorResponse("unknown_error", "unknown error occurred, review logs on the service for more details."));
     });
