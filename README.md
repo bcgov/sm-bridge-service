@@ -188,6 +188,8 @@ SiteMinder HTTP Header | Description | Mapped to ID Token Claim (JSON) | Always 
 `SMGOV_USERTYPE` | The type of user that was authenticated.  Will have one of the following values: `BUSINESS`, `INDIVIDUAL`, `INTERNAL` | `user_type` | yes
 `SMGOV_USERDISPLAYNAME` | The display name of the user that can be displayed on web pages | `name` | yes
 `SMGOV_EMAIL` | The display email address of the user  | `email` | if available
+`SMGOV_BUSINESSGUID` | The GUID of the business | `business_guid` | true only if of type Business
+`SMGOV_BUSINESSLEGALNAME` | The legal name of the business that the user represents | `business_legal_name` | true only if of type Business
 
 # Developers
 
