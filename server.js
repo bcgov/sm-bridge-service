@@ -23,6 +23,8 @@ else {
     {"incoming": "SMGOV_USERTYPE", "outgoing": "user_type", "required": true},
     {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
     {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": false},
+    {"incoming": "SMGOV_BUSINESSGUID", "outgoing": "business_guid", "required": false},
+    {"incoming": "SMGOV_BUSINESSLEGALNAME", "outgoing": "business_legal_name", "required": false},
     {"incoming": "SMGOV_MINISTRY", "outgoing": "ministry", "required": false},
     {"incoming": "SMGOV_OFFICE", "outgoing": "office", "required": false}
   ];

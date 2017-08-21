@@ -12,15 +12,17 @@
       document.form1.userType.value = formValues[1];
       document.form1.userDisplayName.value = formValues[2];
       document.form1.userEmail.value = formValues[3];
-      document.form1.userMinistry.value = formValues[4];
-      document.form1.userOffice.value = formValues[5];
+      document.form1.businessGuid.value = formValues[4];
+      document.form1.businessLegalName.value = formValues[5];
+      document.form1.userMinistry.value = formValues[6];
+      document.form1.userOffice.value = formValues[7];
     }
   </script>
-  <a href="javascript:fillForm(['987123897198273123981723987123', 'Business', 'Joe Business', 'email@email.com', '', ''])">
+  <a href="javascript:fillForm(['987123897198273123981723987123', 'Business', 'Joe Business', 'email@email.com', '2378ASKJSDN897978JHHJ', 'Joe\'s Donuts', '',''])">
     User 1
   </a>
   &nbsp;
-  <a href="javascript:fillForm(['12321387jhaskjhdjkhsadads3', 'Internal', 'Sam Internal', 'email@email.com', 'MCFD', 'ABA'])">
+  <a href="javascript:fillForm(['12321387jhaskjhdjkhsadads3', 'Internal', 'Sam Internal', 'email@email.com', '', '', 'MCFD', 'ABA'])">
     User 2
   </a>
   <form name="form1" method="post">
@@ -39,6 +41,14 @@
     <div>
       <label for="userEmail" >User Email</label>
       <input id="userEmail" name="smgov_email" type="text">
+    </div>
+    <div>
+      <label for="businessGuid" >Business GUID</label>
+      <input id="businessGuid" name="smgov_businessguid" type="text">
+    </div>
+    <div>
+      <label for="businessLegalName" >Business Legal Name</label>
+      <input id="businessLegalName" name="smgov_businesslegalname" type="text">
     </div>
     <div>
       <label for="userMinistry" >Ministry Acronym</label>
