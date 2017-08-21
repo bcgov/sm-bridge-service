@@ -12,13 +12,15 @@
       document.form1.userType.value = formValues[1];
       document.form1.userDisplayName.value = formValues[2];
       document.form1.userEmail.value = formValues[3];
+      document.form1.userMinistry.value = formValues[4];
+      document.form1.userOffice.value = formValues[5];
     }
   </script>
-  <a href="javascript:fillForm(['987123897198273123981723987123', 'Business', 'Joe Business', 'email@email.com'])">
+  <a href="javascript:fillForm(['987123897198273123981723987123', 'Business', 'Joe Business', 'email@email.com', '', ''])">
     User 1
   </a>
   &nbsp;
-  <a href="javascript:fillForm(['12321387jhaskjhdjkhsadads3', 'Internal', 'Sam Internal', 'email@email.com'])">
+  <a href="javascript:fillForm(['12321387jhaskjhdjkhsadads3', 'Internal', 'Sam Internal', 'email@email.com', 'MCFD', 'ABA'])">
     User 2
   </a>
   <form name="form1" method="post">
@@ -37,6 +39,14 @@
     <div>
       <label for="userEmail" >User Email</label>
       <input id="userEmail" name="smgov_email" type="text">
+    </div>
+    <div>
+      <label for="userMinistry" >Ministry Acronym</label>
+      <input id="userMinistry" name="smgov_ministry" type="text">
+    </div>
+    <div>
+      <label for="userOffice" >Office Acronym</label>
+      <input id="userOffice" name="smgov_office" type="text">
     </div>
     <button type="submit">Submit</button>
   </form>
