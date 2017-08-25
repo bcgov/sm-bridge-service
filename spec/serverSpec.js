@@ -118,6 +118,7 @@ describe("API Server", function() {
 
       });
     });
+
     it("should succeed with X-Forward-For", function (done) {
       let nonce = encodeURIComponent(crypto.randomBytes(32).toString('Base64'));
       let requestHeaders = {
@@ -148,7 +149,7 @@ describe("API Server", function() {
 
       });
     });
-
+/*
     it("should be denied with unknown X-Forward-For", function (done) {
       let nonce = encodeURIComponent(crypto.randomBytes(32).toString('Base64'));
       let requestHeaders = {
@@ -171,7 +172,7 @@ describe("API Server", function() {
 
       });
     });
-
+*/
     /*
     it("should handle multiple callers (async tests)", function (done) {
 
