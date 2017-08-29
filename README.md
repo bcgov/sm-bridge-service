@@ -200,6 +200,8 @@ Most will just use this service out-of-the-box but if you wanted to contribute a
 Install NodeJS and start hacking!
 
 `npm install`  <--- do this first
+
 `npm test`     <--- run unit tests
+
 `npm start`    <--- start server
 
