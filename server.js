@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const winston = require('winston');
 const helmet = require('helmet');
 const AccessControl = require('express-ip-access-control');
+const crypto = require('crypto');
 
 const ISSUER = process.env.ISSUER || "http://localhost:8080";
 const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:9090";
@@ -19,9 +20,10 @@ if (process.env.HEADER_MAPPER) {
 }
 else {
   HEADER_MAPPER = [
-    {"incoming": "SMGOV_USERIDENTIFIER", "outgoing": "sub", "required": true},
-    {"incoming": "SMGOV_USERDISPLAYNAME", "outgoing": "name", "required": true},
-    {"incoming": "SMGOV_EMAIL", "outgoing": "email", "required": true},
+    {"incoming": "SMGOV_USERGUID", "outgoing": "guid", "required": true},
+    {"incoming": "SMGOV_GIVENNAME", "outgoing": "fname", "required": false},
+    {"incoming": "SMGOV_SURNAME", "outgoing": "lname", "required": false},
+    {"incoming": "SMGOV_USEREMAIL", "outgoing": "email", "required": true},
   ];
 }
 const SERVICE_IP = process.env.SERVICE_IP || '127.0.0.1';
@@ -217,8 +219,11 @@ if (SIMULATOR_MODE === "true") {
     });
   });
 } else {
+  const nonce = crypto.randomBytes(16).toString('base64');
+  app.get('/', function (req, res){
+    res.redirect('/authorize?nonce=' + nonce);
+  });
   app.get('/authorize', function (req, res) {
-
     // ensure required nonce parameter is provided
     if (!req.query["nonce"]) {
       res.status(400).send(makeOAuth2ErrorResponse("invalid_request","missing nonce in query string, e.g., nonce=<randomvalue>"));
